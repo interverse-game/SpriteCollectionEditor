@@ -16,16 +16,31 @@
 		<local:PercentageConverter x:Key="PercentageConverter"/>
 	</Window.Resources>
 
-	<DockPanel>
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Control" 
+                    CommandParameter="{Binding}"
+                    Command="{Binding FileNewCommand}"/>
+        <KeyBinding Key="O" Modifiers="Control" 
+                    CommandParameter="{Binding}"
+                    Command="{Binding FileOpenCommand}"/>
+        <KeyBinding Key="S" Modifiers="Control" 
+                    CommandParameter="{Binding}"
+                    Command="{Binding FileSaveCommand}"/>
+    </Window.InputBindings>
+
+    <DockPanel>
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="_File">
 				<MenuItem Header="_New" 
+                          InputGestureText="Ctrl+N"
 						  CommandParameter="{Binding}"
 						  Command="{Binding FileNewCommand}"/>
 				<MenuItem Header="_Open..." 
+                          InputGestureText="Ctrl+O"
 						  CommandParameter="{Binding}"
 						  Command="{Binding FileOpenCommand}"/>
 				<MenuItem Header="_Save As..." 
+                          InputGestureText="Ctrl+S"
 						  CommandParameter="{Binding}"
 						  Command="{Binding FileSaveCommand}"/>
 				<Separator/>
@@ -36,7 +51,7 @@
 			<MenuItem Header="_Configure" 
 					  CommandParameter="{Binding}"
 					  Command="{Binding ConfigCommand}"/>
-			<MenuItem Header="About" 
+			<MenuItem Header="_About" 
 					  CommandParameter="{Binding}"
 					  Command="{Binding AboutCommand}"/>
 		</Menu>
@@ -54,7 +69,14 @@
 					<Button Content="+ Group" DockPanel.Dock="Right" HorizontalAlignment="Right"
 							CommandParameter="{Binding}"
 							Command="{Binding AddGroupCommand}" Padding="6,3,6,3"/>
-					<TextBox Text="{Binding InputGroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0" VerticalContentAlignment="Center"/>
+                    <TextBox Text="{Binding InputGroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,5,0" VerticalContentAlignment="Center">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return"
+                                        CommandParameter="{Binding}"
+                                        Command="{Binding AddGroupCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
 				</DockPanel>
 				<ListView x:Name="groupList" ItemsSource="{Binding Groups.Ids}" SelectionChanged="ListView_SelectionChanged" Margin="5,0,5,5">
 					<ListView.Resources>

@@ -41,13 +41,25 @@ namespace TML.SpriteCollectionEditor {
 		SpriteGroup? currentGroup;
 		public SpriteGroup? CurrentGroup {
 			get => currentGroup;
-			set {
+			private set {
 				currentGroup = value;
 				OnPropertyChanged(nameof(CurrentGroup));
 				OnPropertyChanged(nameof(GroupEditorVisiblity));
 			}
 		}
 		public Visibility GroupEditorVisiblity => CurrentGroup != null? Visibility.Visible: Visibility.Collapsed;
+		public void SetGroup(string? id) {
+			if (id == null) {
+				CurrentGroup = null;
+				return;
+			}
+
+			if (!Groups.TryGet(id, out var group)) {
+				Debug.Assert(false);
+			}
+			group.Id = group.OriginalId;
+			CurrentGroup = group;
+		}
 
 		public string inputGroupId = "";
 		public string InputGroupId {
@@ -86,7 +98,6 @@ namespace TML.SpriteCollectionEditor {
 		public RelayCommand<MainWindow> FileNewCommand { get; } = new(
 			(o) => {
 				Debug.Assert(o != null);
-				o.CurrentGroup = null;
 				o.InputGroupId = "";
 				o.Groups.Clear();
 			}
@@ -108,7 +119,6 @@ namespace TML.SpriteCollectionEditor {
 					return;
 				}
 
-				o.CurrentGroup = null;
 				o.InputGroupId = "";
 				o.Groups.Clear();
 
@@ -155,7 +165,7 @@ namespace TML.SpriteCollectionEditor {
 		);
 		public RelayCommand<MainWindow> AboutCommand { get; } = new((o) => {
 			Debug.Assert(o != null);
-			MessageBox.Show(o, "Sprite Collection Editor v1.0.0\nby TML233", "About", MessageBoxButton.OK, MessageBoxImage.Information);
+			MessageBox.Show(o, "Sprite Collection Editor v1.1.0\nby TML233", "About", MessageBoxButton.OK, MessageBoxImage.Information);
 		});
 		public RelayCommand<MainWindow> ExitCommand { get; } = new((o) => {
 			Debug.Assert(o != null);
@@ -181,19 +191,18 @@ namespace TML.SpriteCollectionEditor {
 			}
 		);
 		private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			if (e.AddedItems.Count == 0) {
+			if (sender is not ListView list) {
+				return;
+			}
+			if (list.SelectedItem == null) {
+				SetGroup(null);
 				return;
 			}
 
-			var id = e.AddedItems[0] as string;
+			var id = list.SelectedItem as string;
 			Debug.Assert(id != null);
 
-			if (!Groups.TryGet(id, out var group)) {
-				Debug.Assert(false);
-			}
-
-			group.Id = group.OriginalId;
-			CurrentGroup = group;
+			SetGroup(id);
 		}
 		public RelayCommand<MainWindow> GroupListRemoveCommand { get; } = new(
 			(o) => {
@@ -203,8 +212,6 @@ namespace TML.SpriteCollectionEditor {
 				if (count == 0) {
 					return;
 				}
-
-				o.CurrentGroup = null;
 
 				var removing = new string[count];
 				for (int i = 0; i < count; i += 1) {
@@ -225,16 +232,22 @@ namespace TML.SpriteCollectionEditor {
 		public RelayCommand<MainWindow> ConfirmGroupIdCommand { get; } = new(
 			(o) => {
 				Debug.Assert(o != null);
-				Debug.Assert(o.CurrentGroup != null);
 
-				var succeeded=o.Groups.Rename(o.CurrentGroup.OriginalId, o.CurrentGroup.Id);
+				var group = o.CurrentGroup;
+				Debug.Assert(group != null);
+
+				var succeeded =o.Groups.Rename(group.OriginalId, group.Id);
 				Debug.Assert(succeeded);
+
+				o.SetGroup(group.Id);
 			},
 			(o) => {
 				Debug.Assert(o != null);
-				Debug.Assert(o.CurrentGroup != null);
 
-				return !Validation.GetHasError(o.textboxGroupId) && o.CurrentGroup.Id != o.CurrentGroup.OriginalId;
+				var group = o.CurrentGroup;
+				Debug.Assert(group != null);
+
+				return !Validation.GetHasError(o.textboxGroupId) && group.Id != group.OriginalId;
 			}
 		);
 
