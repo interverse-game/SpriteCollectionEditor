@@ -27,6 +27,8 @@ namespace TML.SpriteCollectionEditor {
 			InitializeComponent();
 		}
 
+		public Localization Localization => Global.Localization;
+
 		string listText = "";
 		public string ListText {
 			get=> listText;

@@ -23,11 +23,14 @@ namespace TML.SpriteCollectionEditor {
 		public ConfigDialog() {
 			Global.LoadConfig();
 			Config = new ConfigData() {
-				ResourcePath = Global.Config.ResourcePath
+				ResourcePath = Global.Config.ResourcePath,
+				LocaleId=Global.Config.LocaleId
 			};
 
 			InitializeComponent();
 		}
+
+		public Localization Localization => Global.Localization;
 
 		public ConfigData Config { get; }
 
@@ -45,6 +48,7 @@ namespace TML.SpriteCollectionEditor {
 			(o) => {
 				Debug.Assert(o != null);
 				Global.Config.ResourcePath=o.Config.ResourcePath;
+				Global.Config.LocaleId = o.Config.LocaleId;
 				Global.SaveConfig();
 				o.Close();
 			}

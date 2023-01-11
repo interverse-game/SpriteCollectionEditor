@@ -5,15 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TML.SpriteCollectionEditor"
         mc:Ignorable="d"
-        Title="Configurations" Height="136" Width="500"
+        Title="Configurations" Height="289" Width="500"
         WindowStartupLocation="CenterOwner"
         DataContext="{Binding RelativeSource={RelativeSource Self}}" ResizeMode="NoResize" SizeToContent="Height" ShowInTaskbar="False">
     <DockPanel Margin="10">
         <WrapPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="Confirm" MinWidth="90" Height="26" 
+            <Button Content="{Binding Localization.Strings.Confirm}" MinWidth="90" Height="26" 
                     CommandParameter="{Binding}"
                     Command="{Binding ConfirmCommand}"/>
-            <Button Content="Cancel" MinWidth="90" Margin="10,0,0,0" 
+            <Button Content="{Binding Localization.Strings.Cancel}" MinWidth="90" Margin="10,0,0,0" 
                     CommandParameter="{Binding}"
                     Command="{Binding CancelCommand}"/>
         </WrapPanel>
@@ -24,15 +24,21 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Label Grid.Row="0" Grid.Column="0" Content="Resource path:"/>
+            <Label Grid.Row="0" Grid.Column="0" Content="{Binding Localization.Strings.ConfigResourcePath}"/>
             <DockPanel Grid.Row="0" Grid.Column="1">
-                <Button DockPanel.Dock="Right" Content="Browse..." Margin="5,0,0,0" Padding="12,1,12,1"
+                <Button DockPanel.Dock="Right" Content="{Binding Localization.Strings.ConfigBrowse}" Margin="5,0,0,0" Padding="12,1,12,1"
                         CommandParameter="{Binding}"
                         Command="{Binding BrowseCommand}"/>
                 <TextBox Text="{Binding Config.ResourcePath, Mode=TwoWay}" VerticalContentAlignment="Center"/>
             </DockPanel>
+            <Label Grid.Row="1" Grid.Column="0" Content="{Binding Localization.Strings.ConfigLanguage}"/>
+            <ListView Grid.Row="1" Grid.Column="1" Height="150" Margin="0,5,0,5"
+                      ItemsSource="{Binding Localization.LocaleIds}" 
+                      SelectionMode="Single"
+                      SelectedItem="{Binding Config.LocaleId}"/>
         </Grid>
     </DockPanel>
 </Window>

@@ -5,16 +5,15 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:TML.SpriteCollectionEditor"
 		mc:Ignorable="d"
-		Title="Sprite Collection Editor" Height="440" Width="700"
+		Title="Sprite Collection Editor" Height="500" Width="800"
 		WindowStartupLocation="CenterScreen"
 		DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
-	<Window.Resources>
-		<Style x:Key="MarinedProperty" TargetType="FrameworkElement">
-			<Setter Property="Margin" Value="2"/>
-		</Style>
-		<local:PercentageConverter x:Key="PercentageConverter"/>
-	</Window.Resources>
+    <Window.Resources>
+        <Style x:Key="MarinedProperty" TargetType="FrameworkElement">
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+    </Window.Resources>
 
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Control" 
@@ -29,44 +28,44 @@
     </Window.InputBindings>
 
     <DockPanel>
-		<Menu DockPanel.Dock="Top">
-			<MenuItem Header="_File">
-				<MenuItem Header="_New" 
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="{Binding Localization.Strings.MenuFile}">
+                <MenuItem Header="{Binding Localization.Strings.MenuFileNew}" 
                           InputGestureText="Ctrl+N"
 						  CommandParameter="{Binding}"
 						  Command="{Binding FileNewCommand}"/>
-				<MenuItem Header="_Open..." 
+                <MenuItem Header="{Binding Localization.Strings.MenuFileOpen}" 
                           InputGestureText="Ctrl+O"
 						  CommandParameter="{Binding}"
 						  Command="{Binding FileOpenCommand}"/>
-				<MenuItem Header="_Save As..." 
+                <MenuItem Header="{Binding Localization.Strings.MenuFileSaveAs}" 
                           InputGestureText="Ctrl+S"
 						  CommandParameter="{Binding}"
 						  Command="{Binding FileSaveCommand}"/>
-				<Separator/>
-				<MenuItem Header="E_xit" 
+                <Separator/>
+                <MenuItem Header="{Binding Localization.Strings.MenuFileExit}" 
 						  CommandParameter="{Binding}"
 						  Command="{Binding ExitCommand}"/>
-			</MenuItem>
-			<MenuItem Header="_Configure" 
+            </MenuItem>
+            <MenuItem Header="{Binding Localization.Strings.MenuConfigure}" 
 					  CommandParameter="{Binding}"
 					  Command="{Binding ConfigCommand}"/>
-			<MenuItem Header="_About" 
+            <MenuItem Header="{Binding Localization.Strings.MenuAbout}" 
 					  CommandParameter="{Binding}"
 					  Command="{Binding AboutCommand}"/>
-		</Menu>
+        </Menu>
 
-		<Grid>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="3*"/>
-				<ColumnDefinition Width="4"/>
-				<ColumnDefinition Width="7*"/>
-			</Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="7*"/>
+            </Grid.ColumnDefinitions>
 
-			<!-- Left -->
-			<DockPanel Grid.Column="0">
-				<DockPanel DockPanel.Dock="Top" Margin="5,5,5,5">
-					<Button Content="+ Group" DockPanel.Dock="Right" HorizontalAlignment="Right"
+            <!-- Left -->
+            <DockPanel Grid.Column="0">
+                <DockPanel DockPanel.Dock="Top" Margin="5,5,5,5">
+                    <Button Content="{Binding Localization.Strings.GroupAdd}" DockPanel.Dock="Right" HorizontalAlignment="Right"
 							CommandParameter="{Binding}"
 							Command="{Binding AddGroupCommand}" Padding="6,3,6,3"/>
                     <TextBox Text="{Binding InputGroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -77,45 +76,45 @@
                                         Command="{Binding AddGroupCommand}"/>
                         </TextBox.InputBindings>
                     </TextBox>
-				</DockPanel>
-				<ListView x:Name="groupList" ItemsSource="{Binding Groups.Ids}" SelectionChanged="ListView_SelectionChanged" Margin="5,0,5,5">
-					<ListView.Resources>
-						<ContextMenu x:Key="ItemContextMenu">
-							<MenuItem Header="Remove" 
+                </DockPanel>
+                <ListView x:Name="groupList" ItemsSource="{Binding Groups.Ids}" SelectionChanged="ListView_SelectionChanged" Margin="5,0,5,5">
+                    <ListView.Resources>
+                        <ContextMenu x:Key="ItemContextMenu">
+                            <MenuItem Header="{Binding Localization.Strings.ContextRemove}" 
 									  DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
 									  CommandParameter="{Binding}"
 									  Command="{Binding GroupListRemoveCommand}"/>
-						</ContextMenu>
-					</ListView.Resources>
-					<ListView.ItemContainerStyle>
-						<Style TargetType="{x:Type ListViewItem}">
-							<Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}"/>
-						</Style>
-					</ListView.ItemContainerStyle>
-				</ListView>
-			</DockPanel>
+                        </ContextMenu>
+                    </ListView.Resources>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListViewItem}">
+                            <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+            </DockPanel>
 
-			<GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
 
-			<!-- Right -->
-			<ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
-				<Grid Visibility="{Binding ElementName=root, Path=GroupEditorVisiblity}" DataContext="{Binding CurrentGroup}" Margin="5,5,5,5">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-					</Grid.RowDefinitions>
+            <!-- Right -->
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <Grid Visibility="{Binding ElementName=root, Path=GroupEditorVisiblity}" DataContext="{Binding CurrentGroup}" Margin="5,5,5,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-					<Label Grid.Row="0" Grid.Column="0" Content="Id"/>
+                    <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupId}"/>
                     <TextBox x:Name="textboxGroupId" Grid.Row="0" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 							 VerticalContentAlignment="Center">
                         <TextBox.InputBindings>
@@ -139,79 +138,76 @@
                         </TextBox.Text>
                     </TextBox>
                     <StackPanel Grid.Row="1" Grid.Column="0">
-						<Label Content="Textures" DockPanel.Dock="Top"/>
-						<Button Content="+" Width="44" MinHeight="40" HorizontalAlignment="Right" Margin="0,0,2,1"
+                        <Label Content="{Binding ElementName=root, Path=Localization.Strings.GroupTextures}" DockPanel.Dock="Top"/>
+                        <Button Content="+" Width="44" MinHeight="40" HorizontalAlignment="Right" Margin="0,0,2,1"
 								CommandParameter="{Binding ElementName=root}"
 								Command="{Binding ElementName=root, Path=AddTextureCommand}"/>
-						<Button Content=">_" Width="44" MinHeight="40" HorizontalAlignment="Right" Margin="0,1,2,0"
+                        <Button Content=">_" Width="44" MinHeight="40" HorizontalAlignment="Right" Margin="0,1,2,0"
 								CommandParameter="{Binding ElementName=root}"
 								Command="{Binding ElementName=root, Path=EditTextureListCommand}"/>
-					</StackPanel>
-					<ListView x:Name="textureList" Grid.Row="1" Grid.Column="1" Style="{StaticResource MarinedProperty}"
-							  Height="160" ItemsSource="{Binding TexturePaths}">
-						<ListView.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding Path}"/>
-							</DataTemplate>
-						</ListView.ItemTemplate>
-						<ListView.Resources>
-							<ContextMenu x:Key="ItemContextMenu">
-								<MenuItem Header="Remove"
+                    </StackPanel>
+                    <ListView x:Name="textureList" Grid.Row="1" Grid.Column="1" Style="{StaticResource MarinedProperty}"
+							  Height="180" ItemsSource="{Binding TexturePaths}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                        <ListView.Resources>
+                            <ContextMenu x:Key="ItemContextMenu">
+                                <MenuItem Header="{Binding Localization.Strings.ContextRemove}"
 										  DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"
 										  CommandParameter="{Binding}"
 										  Command="{Binding TextureListRemoveCommand}"/>
-							</ContextMenu>
-						</ListView.Resources>
-						<ListView.ItemContainerStyle>
-							<Style TargetType="{x:Type ListViewItem}">
-								<Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}"/>
-							</Style>
-						</ListView.ItemContainerStyle>
-					</ListView>
-					<Label Grid.Row="2" Grid.Column="0" Content="Speed (FPS)"/>
-					<TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource MarinedProperty}"
+                            </ContextMenu>
+                        </ListView.Resources>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListViewItem}">
+                                <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
+                    <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupSpeed}"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 						 Text="{Binding Speed, Mode=TwoWay}" VerticalContentAlignment="Center"/>
-					<Label Grid.Row="3" Grid.Column="0" Content="Start Index"/>
-					<TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource MarinedProperty}"
+                    <Label Grid.Row="3" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupStartIndex}"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 						 Text="{Binding StartIndex, Mode=TwoWay}" VerticalContentAlignment="Center"/>
-					<Label Grid.Row="4" Grid.Column="0" Content="Flags"/>
-					<StackPanel Grid.Row="4" Grid.Column="1" Style="{StaticResource MarinedProperty}">
-						<CheckBox Content="Start Playing"
+                    <Label Grid.Row="4" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupFlags}"/>
+                    <StackPanel Grid.Row="4" Grid.Column="1" Style="{StaticResource MarinedProperty}">
+                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupStartPlaying}"
 							  IsChecked="{Binding StartPlaying, Mode=TwoWay}"/>
-						<CheckBox Content="Looped"
+                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupLooped}"
 							  IsChecked="{Binding Looped, Mode=TwoWay}"/>
-						<CheckBox Content="Flip X"
+                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupFlipX}"
 							  IsChecked="{Binding FlipX, Mode=TwoWay}"/>
-						<CheckBox Content="Flip Y"
+                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupFlipY}"
 							  IsChecked="{Binding FlipY, Mode=TwoWay}"/>
-					</StackPanel>
-					<Label Grid.Row="5" Grid.Column="0" Content="Origin"/>
-					<StackPanel Grid.Row="5" Grid.Column="1" Style="{StaticResource MarinedProperty}">
-						<WrapPanel Margin="0,0,0,1">
-							<TextBox Width="50"
-							 Text="{Binding OriginFactorX, Mode=TwoWay, Converter={StaticResource PercentageConverter}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-							<Label Content="%" Padding="5,3,5,3" Width="24"/>
-							<TextBox Width="50"
-							 Text="{Binding OriginFactorY, Mode=TwoWay, Converter={StaticResource PercentageConverter}}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-							<Label Content="%" Padding="5,3,5,3"/>
-						</WrapPanel>
-						<WrapPanel Margin="0,1,0,0">
-							<TextBox Width="50" Text="{Binding OriginOffsetX, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-							<Label Content="px" Padding="5,3,5,3" Width="24"/>
-							<TextBox Width="50" Text="{Binding OriginOffsetY, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-							<Label Content="px" Padding="5,3,5,3"/>
-						</WrapPanel>
-					</StackPanel>
-					<DockPanel Grid.Row="6" Grid.Column="0">
-						<CheckBox DockPanel.Dock="Right" VerticalAlignment="Center"
+                    </StackPanel>
+                    <Label Grid.Row="5" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupOriginFactor}"/>
+                    <WrapPanel Grid.Row="5" Grid.Column="1" Style="{StaticResource MarinedProperty}">
+                        <Label Content="X" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
+                        <TextBox Width="50" Text="{Binding OriginFactorX, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                        <Label Content="Y" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
+                        <TextBox Width="50" Text="{Binding OriginFactorY, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                    </WrapPanel>
+                    <Label Grid.Row="6" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupOriginOffset}"/>
+                    <WrapPanel Grid.Row="6" Grid.Column="1" Style="{StaticResource MarinedProperty}">
+                        <Label Content="X" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
+                        <TextBox Width="50" Text="{Binding OriginOffsetX, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                        <Label Content="Y" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
+                        <TextBox Width="50" Text="{Binding OriginOffsetY, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                    </WrapPanel>
+                    <DockPanel Grid.Row="7" Grid.Column="0">
+                        <CheckBox DockPanel.Dock="Right" VerticalAlignment="Center"
 							  IsChecked="{Binding NextGroupEnabled, Mode=TwoWay}"/>
-						<Label Content="Next Group" DockPanel.Dock="Left"/>
-					</DockPanel>
-					<TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource MarinedProperty}"
+                        <Label Content="{Binding ElementName=root, Path=Localization.Strings.GroupNextGroup}" DockPanel.Dock="Left"/>
+                    </DockPanel>
+                    <TextBox Grid.Row="7" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 						 IsEnabled="{Binding NextGroupEnabled}"
 						 Text="{Binding NextGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
-				</Grid>
-			</ScrollViewer>
-		</Grid>
-	</DockPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
 </Window>

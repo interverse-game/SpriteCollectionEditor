@@ -9,10 +9,10 @@
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <DockPanel Margin="10">
         <WrapPanel DockPanel.Dock="Bottom" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="Confirm" MinWidth="90" Height="26"
+            <Button Content="{Binding Localization.Strings.Confirm}" MinWidth="90" Height="26"
                     CommandParameter="{Binding}"
                     Command="{Binding ConfirmCommand}"/>
-            <Button Content="Cancel" MinWidth="90" Margin="10,0,0,0"
+            <Button Content="{Binding Localization.Strings.Cancel}" MinWidth="90" Margin="10,0,0,0"
                     CommandParameter="{Binding}"
                     Command="{Binding CancelCommand}"/>
         </WrapPanel>

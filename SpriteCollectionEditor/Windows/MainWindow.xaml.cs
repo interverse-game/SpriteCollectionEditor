@@ -36,6 +36,8 @@ namespace TML.SpriteCollectionEditor {
 			Groups.PropertyChanged += (from, e) => AddGroupCommand.RaiseCanExecuteChanged();
 		}
 
+		public Localization Localization => Global.Localization;
+
 		public GroupManager Groups { get; } = new GroupManager();
 
 		SpriteGroup? currentGroup;
@@ -115,7 +117,7 @@ namespace TML.SpriteCollectionEditor {
 					var text = File.ReadAllText(o.openCollectionDialog.FileName);
 					data = Json.DeserializeClass<Dictionary<string, SpriteGroupData>>(text);
 				} catch (Exception e) {
-					MessageBox.Show(o, string.Format("Failed to open Sprite Collection: {0}", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+					MessageBox.Show(o, string.Format(o.Localization.Strings.OpenCollectionError, e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 					return;
 				}
 
@@ -149,7 +151,7 @@ namespace TML.SpriteCollectionEditor {
 					var text = Json.SerializeClass(data, true);
 					File.WriteAllText(o.saveCollectionDialog.FileName, text);
 				} catch (Exception e) {
-					MessageBox.Show(o, string.Format("Failed to save Sprite Collection: {0}", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+					MessageBox.Show(o, string.Format(o.Localization.Strings.SaveCollectionError, e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 					return;
 				}
 			}
@@ -165,7 +167,7 @@ namespace TML.SpriteCollectionEditor {
 		);
 		public RelayCommand<MainWindow> AboutCommand { get; } = new((o) => {
 			Debug.Assert(o != null);
-			MessageBox.Show(o, "Sprite Collection Editor v1.1.0\nby TML233", "About", MessageBoxButton.OK, MessageBoxImage.Information);
+			MessageBox.Show(o, "Sprite Collection Editor v1.2.0\nby TML233", "About", MessageBoxButton.OK, MessageBoxImage.Information);
 		});
 		public RelayCommand<MainWindow> ExitCommand { get; } = new((o) => {
 			Debug.Assert(o != null);
@@ -258,7 +260,7 @@ namespace TML.SpriteCollectionEditor {
 
 				var resPath = Global.Config.ResourcePath;
 				if (!Directory.Exists(resPath)) {
-					MessageBox.Show(o, "Resource path invalid or not exists!\nPlease re-configurate it in the following dialog.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+					MessageBox.Show(o, o.Localization.Strings.AddTextureConfigError, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
 					var dialog = new ConfigDialog() {
 						Owner = o
 					};
@@ -278,7 +280,7 @@ namespace TML.SpriteCollectionEditor {
 
 				foreach (var fpath in o.selectTextureDialog.FileNames) {
 					if (!Global.FormatPathForRes(fpath, out var result)) {
-						MessageBox.Show(o, "The file(s) you've chosen are not in the resource path!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+						MessageBox.Show(o, o.Localization.Strings.AddTexturePathError, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
 						break;
 					}
 					o.CurrentGroup.TexturePaths.Add(new SpriteGroup.TexturePath(result));
@@ -382,8 +384,8 @@ namespace TML.SpriteCollectionEditor {
 			}
 			return r;
 		}
-		public bool Rename(string from,string to) {
-			if(!TryGet(from,out var group)) {
+		public bool Rename(string from, string to) {
+			if (!TryGet(from, out var group)) {
 				return false;
 			}
 			if (IsExists(to)) {
@@ -397,21 +399,6 @@ namespace TML.SpriteCollectionEditor {
 		public void Clear() {
 			groups.Clear();
 			OnGroupsChanged();
-		}
-	}
-
-	public class PercentageConverter : IValueConverter {
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-			return string.Format("{0:0.##}", ((float)value) * 100);
-		}
-
-		public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
-			if (value is string s) {
-				if (float.TryParse(s, out var v)) {
-					return v / 100f;
-				}
-			}
-			return null;
 		}
 	}
 
