@@ -5,19 +5,30 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace TML.SpriteCollectionEditor {
-	public struct PlainConfigData {
-		public string ResourcePath { get; init; }
-		public string LocaleId { get; set; }
-	}
+	public readonly record struct PlainConfigData(
+		bool AddsResPrefix,
+		string ResourcePath,
+		string LocaleId
+	);
 	public class ConfigData : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public void OnPropertyChanged(string propertyName) =>
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+		bool addsResPrefix = true;
+		public bool AddsResPrefix {
+			get => addsResPrefix;
+			set {
+				addsResPrefix = value;
+				OnPropertyChanged(nameof(AddsResPrefix));
+			}
+		}
 		string resourcePath = "";
 		public string ResourcePath {
 			get => resourcePath;
@@ -41,82 +52,13 @@ namespace TML.SpriteCollectionEditor {
 		public void OnPropertyChanged(string propertyName) =>
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-		public Localization() {
-			locales.Add("en", new LocaleSet {
-				MenuFile = "_File",
-				MenuFileNew = "_New",
-				MenuFileOpen = "_Open...",
-				MenuFileSaveAs = "_Save As...",
-				MenuFileExit = "_Exit",
-				MenuConfigure = "_Configure",
-				MenuAbout = "_About",
-				GroupAdd = "+ Group",
-				ContextRemove = "Remove",
-				GroupId = "Id",
-				GroupTextures = "Textures",
-				GroupSpeed = "Speed (FPS)",
-				GroupStartIndex = "Start Index",
-				GroupFlags = "Flags",
-				GroupStartPlaying = "Start Playing",
-				GroupLooped = "Looped",
-				GroupFlipX = "Flip X",
-				GroupFlipY = "Flip Y",
-				GroupOriginFactor = "Origin Factor",
-				GroupOriginOffset = "Origin Offset",
-				GroupNextGroup = "Next Group",
-				GroupEditingSingle = "Editing group \"{0}\"",
-				GroupEditingMultiple = "Editing {0} groups",
-				OpenCollectionError = "Failed to open sprite collection: {0}",
-				SaveCollectionError = "Failed to save sprite collection: {0}",
-				AddTexturePathError = "The file(s) you've selected are not in the resource path!",
-				AddTextureConfigError = "Resource path invalid!\nPlease re-configure it in the following dialog.",
-				Confirm = "Confirm",
-				Cancel = "Cancel",
-				ConfigResourcePath = "Resource Path",
-				ConfigBrowse = "Browse...",
-				ConfigLanguage = "Language"
-			});
-
-			locales.Add("zh-cn", new LocaleSet {
-				MenuFile = "文件(_F)",
-				MenuFileNew = "新建(_N)",
-				MenuFileOpen = "打开(_O)...",
-				MenuFileSaveAs = "另存为(_S)...",
-				MenuFileExit = "退出(_E)",
-				MenuConfigure = "配置(_C)",
-				MenuAbout = "关于(_A)",
-				GroupAdd = "+ 贴图组",
-				ContextRemove = "移除",
-				GroupId = "Id",
-				GroupTextures = "贴图",
-				GroupSpeed = "帧速率（FPS）",
-				GroupStartIndex = "起始帧序号",
-				GroupFlags = "选项",
-				GroupStartPlaying = "开始时播放",
-				GroupLooped = "循环播放",
-				GroupFlipX = "翻转 - 左右",
-				GroupFlipY = "翻转 - 上下",
-				GroupOriginFactor = "原点比例",
-				GroupOriginOffset = "原点偏移",
-				GroupNextGroup = "接续组",
-				GroupEditingSingle = "正在编辑贴图组 {0}",
-				GroupEditingMultiple = "正在多选编辑 {0} 个贴图组",
-				OpenCollectionError = "无法打开贴图集：{0}",
-				SaveCollectionError = "无法保存贴图集：{0}",
-				AddTexturePathError = "贴图文件需要位于资源路径内才能添加！",
-				AddTextureConfigError = "资源路径无效！请在稍后弹出的对话框中配置。",
-				Confirm = "确定",
-				Cancel = "取消",
-				ConfigResourcePath = "资源路径",
-				ConfigBrowse = "浏览...",
-				ConfigLanguage = "语言"
-			});
-
-			SetLocale("en");
-		}
 		readonly Dictionary<string, LocaleSet> locales = new Dictionary<string, LocaleSet>();
 		public IEnumerable<string> LocaleIds => locales.Keys;
 
+		public void AddLocale(string id,LocaleSet locale)
+		{
+			locales.Add(id, locale);
+		}
 		public bool SetLocale(string id) {
 			if (!locales.TryGetValue(id, out var locale)) {
 				return false;
@@ -135,16 +77,38 @@ namespace TML.SpriteCollectionEditor {
 	}
 	public static class Global {
 		static Global() {
+			string[] locales = ["en", "zh-cn"];
+			foreach (var locale in locales) {
+				try {
+					var localeSet=JsonSerializer.Deserialize<LocaleSet>(File.ReadAllText($"./Languages/{locale}.json"));
+					if (localeSet == null) throw new InvalidDataException("Language file is null!");
+					Localization.AddLocale(locale, localeSet);
+				} catch (Exception e) {
+					MessageBox.Show($"Failed loading locale {locale}: {e}");
+				}
+			}
 			Config.PropertyChanged += (o, e) => {
 				if (e.PropertyName == "ResourcePath") {
 					HasResourcePathChanged = true;
 				}
 				if (e.PropertyName == "LocaleId") {
 					if (!Localization.SetLocale(Config.LocaleId)) {
-						Config.LocaleId = "en";
+						if (Config.LocaleId != "en") {
+							Config.LocaleId = "en";
+						}
 					}
 				}
+				if (SaveConfigAfterChanged) {
+					configSaveTimer.Stop();
+					configSaveTimer.Interval = TimeSpan.FromSeconds(DelayBeforeConfigSave);
+					configSaveTimer.Start();
+				}
 			};
+			configSaveTimer.Tick += (_,_) => {
+				configSaveTimer.Stop();
+				SaveConfig();
+			};
+			SaveConfigAfterChanged = true;
 		}
 
 		public static Localization Localization { get; } = new Localization();
@@ -152,10 +116,13 @@ namespace TML.SpriteCollectionEditor {
 		public static ConfigData Config { get; } = new ConfigData();
 
 		public const string ConfigPath = "./Config.json";
+		static bool SaveConfigAfterChanged { get; set; } = false;
+		public static float DelayBeforeConfigSave { get; set; } = 2;
+		static DispatcherTimer configSaveTimer = new DispatcherTimer();
 		public static void LoadConfig() {
 			try {
 				var text=File.ReadAllText(ConfigPath);
-				var data = Json.DeserializeStruct<PlainConfigData>(text);
+				var data = JsonSerializer.Deserialize<PlainConfigData>(text);
 				Config.ResourcePath = data.ResourcePath;
 				Config.LocaleId = data.LocaleId;
 			} catch(Exception e) {
@@ -165,11 +132,16 @@ namespace TML.SpriteCollectionEditor {
 		}
 		public static void SaveConfig() {
 			PlainConfigData data = new PlainConfigData() {
+				AddsResPrefix = Config.AddsResPrefix,
 				ResourcePath = Config.ResourcePath,
 				LocaleId = Config.LocaleId,
 			};
-			string text = Json.SerializeStruct(data, true);
-			File.WriteAllText(ConfigPath, text);
+			string text = JsonSerializer.Serialize(data);
+			try {
+				File.WriteAllText(ConfigPath, text);
+			}catch(Exception e) {
+				MessageBox.Show($"Failed to save config: {e}");
+			}
 		}
 		public static void ResetConfig() {
 			Config.ResourcePath = "";
@@ -187,7 +159,7 @@ namespace TML.SpriteCollectionEditor {
 				result = null;
 				return false;
 			}
-			result = "res://" + rel.Replace('\\', '/');
+			result = (Config.AddsResPrefix ? "res://" : "") + rel.Replace('\\', '/');
 			return true;
 		}
 

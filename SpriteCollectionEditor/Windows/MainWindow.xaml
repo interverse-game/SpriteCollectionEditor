@@ -5,7 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:TML.SpriteCollectionEditor"
 		mc:Ignorable="d"
-		Title="Sprite Collection Editor" Height="500" Width="800"
+		Title="Sprite Collection Editor" Height="520" Width="820"
 		WindowStartupLocation="CenterScreen"
 		DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
@@ -28,36 +28,49 @@
     </Window.InputBindings>
 
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="{Binding Localization.Strings.MenuFile}">
-                <MenuItem Header="{Binding Localization.Strings.MenuFileNew}" 
-                          InputGestureText="Ctrl+N"
-						  CommandParameter="{Binding}"
-						  Command="{Binding FileNewCommand}"/>
-                <MenuItem Header="{Binding Localization.Strings.MenuFileOpen}" 
-                          InputGestureText="Ctrl+O"
-						  CommandParameter="{Binding}"
-						  Command="{Binding FileOpenCommand}"/>
-                <MenuItem Header="{Binding Localization.Strings.MenuFileSaveAs}" 
-                          InputGestureText="Ctrl+S"
-						  CommandParameter="{Binding}"
-						  Command="{Binding FileSaveCommand}"/>
-                <Separator/>
-                <MenuItem Header="{Binding Localization.Strings.MenuFileExit}" 
-						  CommandParameter="{Binding}"
-						  Command="{Binding ExitCommand}"/>
-            </MenuItem>
-            <MenuItem Header="{Binding Localization.Strings.MenuConfigure}" 
-					  CommandParameter="{Binding}"
-					  Command="{Binding ConfigCommand}"/>
-            <MenuItem Header="{Binding Localization.Strings.MenuAbout}" 
-					  CommandParameter="{Binding}"
-					  Command="{Binding AboutCommand}"/>
-        </Menu>
+        <StackPanel DockPanel.Dock="Top">
+            <Menu>
+                <MenuItem Header="{Binding Localization.Strings.MenuFile,FallbackValue='File'}">
+                    <MenuItem Header="{Binding Localization.Strings.MenuFileNew,FallbackValue='New'}" 
+                              InputGestureText="Ctrl+N"
+						      CommandParameter="{Binding}"
+						      Command="{Binding FileNewCommand}"/>
+                    <MenuItem Header="{Binding Localization.Strings.MenuFileOpen,FallbackValue='Open'}" 
+                              InputGestureText="Ctrl+O"
+						      CommandParameter="{Binding}"
+						      Command="{Binding FileOpenCommand}"/>
+                    <MenuItem Header="{Binding Localization.Strings.MenuFileSaveAs,FallbackValue='Save As'}" 
+                              InputGestureText="Ctrl+S"
+						      CommandParameter="{Binding}"
+						      Command="{Binding FileSaveCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="{Binding Localization.Strings.MenuFileExit,FallbackValue='Exit'}" 
+						      CommandParameter="{Binding}"
+						      Command="{Binding ExitCommand}"/>
+                </MenuItem>
+                <MenuItem Header="{Binding Localization.Strings.MenuAbout,FallbackValue='About'}" 
+					      CommandParameter="{Binding}"
+					      Command="{Binding AboutCommand}"/>
+            </Menu>
+            <ToolBarTray>
+                <ToolBar Band="1" BandIndex="1">
+                    <Label Content="{Binding Path=Localization.Strings.ConfigLanguage,FallbackValue='Language'}"/>
+                    <ComboBox ItemsSource="{Binding Localization.LocaleIds}" MinWidth="64" SelectedItem="{Binding Config.LocaleId,Mode=TwoWay}"></ComboBox>
+                </ToolBar>
+                <ToolBar Band="1" BandIndex="2">
+                    <CheckBox Content="{Binding Path=Localization.Strings.ConfigAddsResPrefix,FallbackValue='Adds res:// Prefix?'}" IsChecked="{Binding Config.AddsResPrefix, Mode=TwoWay}" ToolTip="{Binding Localization.Strings.ConfigAddsResPrefixHelp}"></CheckBox>
+                    <Separator></Separator>
+                    <Label Content="{Binding Path=Localization.Strings.ConfigResourcePath,FallbackValue='Resource Path'}" ToolTip="{Binding Localization.Strings.ConfigResourcePathHelp}"/>
+                    <TextBox Width="300" Text="{Binding Config.ResourcePath,Mode=TwoWay}"></TextBox>
+                    <Button Content="{Binding Path=Localization.Strings.ConfigBrowse,FallbackValue='Browse'}" CommandParameter="{Binding}" Command="{Binding ConfigBrowseCommand}"></Button>
 
+                </ToolBar>
+            </ToolBarTray>
+        </StackPanel>
+        
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="2.9*"/>
                 <ColumnDefinition Width="4"/>
                 <ColumnDefinition Width="7*"/>
             </Grid.ColumnDefinitions>
@@ -65,7 +78,7 @@
             <!-- Left -->
             <DockPanel Grid.Column="0">
                 <DockPanel DockPanel.Dock="Top" Margin="5,5,5,5">
-                    <Button Content="{Binding Localization.Strings.GroupAdd}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                    <Button Content="{Binding Localization.Strings.AnimationAdd,FallbackValue='Add'}" DockPanel.Dock="Right" HorizontalAlignment="Right"
 							CommandParameter="{Binding}"
 							Command="{Binding AddGroupCommand}" Padding="6,3,6,3"/>
                     <TextBox Text="{Binding InputGroupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -77,7 +90,7 @@
                         </TextBox.InputBindings>
                     </TextBox>
                 </DockPanel>
-                <ListView x:Name="groupList" ItemsSource="{Binding Groups.Ids}" SelectionChanged="ListView_SelectionChanged" Margin="5,0,5,5">
+                <ListView x:Name="groupList" ItemsSource="{Binding Groups.OrderedGroups}" DisplayMemberPath="Key" SelectedValuePath="Value" SelectedValue="{Binding CurrentGroup,Mode=TwoWay}" Margin="5,0,5,5">
                     <ListView.Resources>
                         <ContextMenu x:Key="ItemContextMenu">
                             <MenuItem Header="{Binding Localization.Strings.ContextRemove}" 
@@ -112,9 +125,10 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupId}"/>
+                    <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.AnimationId,FallbackValue='Id'}" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationIdHelp}"/>
                     <TextBox x:Name="textboxGroupId" Grid.Row="0" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 							 VerticalContentAlignment="Center">
                         <TextBox.InputBindings>
@@ -138,13 +152,15 @@
                         </TextBox.Text>
                     </TextBox>
                     <StackPanel Grid.Row="1" Grid.Column="0">
-                        <Label Content="{Binding ElementName=root, Path=Localization.Strings.GroupTextures}" DockPanel.Dock="Top"/>
+                        <Label Content="{Binding ElementName=root, Path=Localization.Strings.AnimationTexturePaths,FallbackValue='Texture Paths'}" DockPanel.Dock="Top"/>
                         <Button Content="+" Width="44" MinHeight="40" HorizontalAlignment="Right" Margin="0,0,2,1"
 								CommandParameter="{Binding ElementName=root}"
-								Command="{Binding ElementName=root, Path=AddTextureCommand}"/>
+								Command="{Binding ElementName=root, Path=AddTextureCommand}"
+                                ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationTexturePathsAddHelp}"/>
                         <Button Content=">_" Width="44" MinHeight="40" HorizontalAlignment="Right" Margin="0,1,2,0"
 								CommandParameter="{Binding ElementName=root}"
-								Command="{Binding ElementName=root, Path=EditTextureListCommand}"/>
+								Command="{Binding ElementName=root, Path=EditTextureListCommand}"
+                                ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationTexturePathsEditHelp}"/>
                     </StackPanel>
                     <ListView x:Name="textureList" Grid.Row="1" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 							  Height="180" ItemsSource="{Binding TexturePaths}">
@@ -167,45 +183,50 @@
                             </Style>
                         </ListView.ItemContainerStyle>
                     </ListView>
-                    <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupSpeed}"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.AnimationSpeed,FallbackValue='Speed'}" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationSpeedHelp}"/>
                     <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 						 Text="{Binding Speed, Mode=TwoWay}" VerticalContentAlignment="Center"/>
-                    <Label Grid.Row="3" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupStartIndex}"/>
+                    <Label Grid.Row="3" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.AnimationStartIndex,FallbackValue='Start Index'}" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationStartIndexHelp}"/>
                     <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource MarinedProperty}"
 						 Text="{Binding StartIndex, Mode=TwoWay}" VerticalContentAlignment="Center"/>
-                    <Label Grid.Row="4" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupFlags}"/>
-                    <StackPanel Grid.Row="4" Grid.Column="1" Style="{StaticResource MarinedProperty}">
-                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupStartPlaying}"
+                    <Label Grid.Row="4" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.AnimationIndexAfterLoop,FallbackValue='Index After Loop'}" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationIndexAfterLoopHelp}"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource MarinedProperty}"
+				 Text="{Binding IndexAfterLoop, Mode=TwoWay}" VerticalContentAlignment="Center"/>
+                    <Label Grid.Row="5" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.AnimationFlags,FallbackValue='Flags'}"/>
+                    <StackPanel Grid.Row="5" Grid.Column="1" Style="{StaticResource MarinedProperty}">
+                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.AnimationStartPlaying,FallbackValue='Start Playing'}" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationStartPlayingHelp}"
 							  IsChecked="{Binding StartPlaying, Mode=TwoWay}"/>
-                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupLooped}"
+                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.AnimationLooped,FallbackValue='Looped'}"
 							  IsChecked="{Binding Looped, Mode=TwoWay}"/>
-                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupFlipX}"
-							  IsChecked="{Binding FlipX, Mode=TwoWay}"/>
-                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.GroupFlipY}"
-							  IsChecked="{Binding FlipY, Mode=TwoWay}"/>
+                        <CheckBox Content="{Binding ElementName=root, Path=Localization.Strings.AnimationPrecacheTextures,FallbackValue='Precache Textures'}" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationPrecacheTexturesHelp}"
+							  IsChecked="{Binding PrecacheTextures, Mode=TwoWay}"/>
                     </StackPanel>
-                    <Label Grid.Row="5" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupOriginFactor}"/>
-                    <WrapPanel Grid.Row="5" Grid.Column="1" Style="{StaticResource MarinedProperty}">
+                    <Label Grid.Row="6" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.AnimationScale,FallbackValue='Scale'}"/>
+                    <WrapPanel Grid.Row="6" Grid.Column="1" Style="{StaticResource MarinedProperty}">
+                        <Label Content="X" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
+                        <TextBox Width="50" Text="{Binding ScaleX, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                        <Label Content="Y" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
+                        <TextBox Width="50" Text="{Binding ScaleY, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                    </WrapPanel>
+                    <Label Grid.Row="7" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.AnimationOrigin,FallbackValue='Origin'}" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationOriginHelp}"/>
+                    <WrapPanel Grid.Row="7" Grid.Column="1" Style="{StaticResource MarinedProperty}">
                         <Label Content="X" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
                         <TextBox Width="50" Text="{Binding OriginFactorX, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                         <Label Content="Y" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
                         <TextBox Width="50" Text="{Binding OriginFactorY, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                    </WrapPanel>
-                    <Label Grid.Row="6" Grid.Column="0" Content="{Binding ElementName=root, Path=Localization.Strings.GroupOriginOffset}"/>
-                    <WrapPanel Grid.Row="6" Grid.Column="1" Style="{StaticResource MarinedProperty}">
+                        <Label Content="+" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
                         <Label Content="X" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
                         <TextBox Width="50" Text="{Binding OriginOffsetX, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                        <Label Content="px" Padding="2,3,5,3" HorizontalContentAlignment="Center"/>
                         <Label Content="Y" Padding="5,3,5,3" HorizontalContentAlignment="Center"/>
                         <TextBox Width="50" Text="{Binding OriginOffsetY, Mode=TwoWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                        <Label Content="px" Padding="2,3,5,3" HorizontalContentAlignment="Center"/>
                     </WrapPanel>
-                    <DockPanel Grid.Row="7" Grid.Column="0">
-                        <CheckBox DockPanel.Dock="Right" VerticalAlignment="Center"
-							  IsChecked="{Binding NextGroupEnabled, Mode=TwoWay}"/>
-                        <Label Content="{Binding ElementName=root, Path=Localization.Strings.GroupNextGroup}" DockPanel.Dock="Left"/>
+                    <DockPanel Grid.Row="8" Grid.Column="0">
+                        <Label Content="{Binding ElementName=root, Path=Localization.Strings.AnimationNextAnimation,FallbackValue='Next Animation'}" DockPanel.Dock="Left" ToolTip="{Binding ElementName=root, Path=Localization.Strings.AnimationNextAnimationHelp}"/>
                     </DockPanel>
-                    <TextBox Grid.Row="7" Grid.Column="1" Style="{StaticResource MarinedProperty}"
-						 IsEnabled="{Binding NextGroupEnabled}"
-						 Text="{Binding NextGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+                    <TextBox Grid.Row="8" Grid.Column="1" Style="{StaticResource MarinedProperty}"
+						 Text="{Binding NextAnimation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
                 </Grid>
             </ScrollViewer>
         </Grid>

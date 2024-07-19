@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,15 +37,31 @@ namespace TML.SpriteCollectionEditor {
 			Groups.PropertyChanged += (from, e) => AddGroupCommand.RaiseCanExecuteChanged();
 		}
 
+		public ConfigData Config => Global.Config;
+		readonly VistaFolderBrowserDialog folderDialog = new VistaFolderBrowserDialog();
+
+		public RelayCommand<MainWindow> ConfigBrowseCommand { get; } = new RelayCommand<MainWindow>(
+			(o) => {
+				Debug.Assert(o != null);
+				if (o.folderDialog.ShowDialog(o) ?? false) {
+					o.Config.ResourcePath = o.folderDialog.SelectedPath;
+				}
+			}
+		);
+
+
 		public Localization Localization => Global.Localization;
 
 		public GroupManager Groups { get; } = new GroupManager();
 
-		SpriteGroup? currentGroup;
-		public SpriteGroup? CurrentGroup {
+		SpriteAnimation? currentGroup;
+		public SpriteAnimation? CurrentGroup {
 			get => currentGroup;
-			private set {
+			set {
 				currentGroup = value;
+				if (currentGroup != null) {
+					currentGroup.Id = currentGroup.OriginalId;
+				}
 				OnPropertyChanged(nameof(CurrentGroup));
 				OnPropertyChanged(nameof(GroupEditorVisiblity));
 			}
@@ -59,7 +76,7 @@ namespace TML.SpriteCollectionEditor {
 			if (!Groups.TryGet(id, out var group)) {
 				Debug.Assert(false);
 			}
-			group.Id = group.OriginalId;
+
 			CurrentGroup = group;
 		}
 
@@ -112,10 +129,10 @@ namespace TML.SpriteCollectionEditor {
 					return;
 				}
 
-				Dictionary<string, SpriteGroupData>? data;
+				Dictionary<string, SpriteAnimationData>? data;
 				try {
 					var text = File.ReadAllText(o.openCollectionDialog.FileName);
-					data = Json.DeserializeClass<Dictionary<string, SpriteGroupData>>(text);
+					data = JsonSerializer.Deserialize<Dictionary<string, SpriteAnimationData>>(text);
 				} catch (Exception e) {
 					MessageBox.Show(o, string.Format(o.Localization.Strings.OpenCollectionError, e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 					return;
@@ -126,7 +143,7 @@ namespace TML.SpriteCollectionEditor {
 
 				if (data != null) {
 					foreach (var pair in data) {
-						o.Groups.Add(pair.Key, (SpriteGroup)pair.Value);
+						o.Groups.Add(pair.Key, SpriteAnimation.FromData(pair.Value));
 					}
 				}
 			}
@@ -142,13 +159,13 @@ namespace TML.SpriteCollectionEditor {
 				// Lose focus to update bound value
 				o.textboxGroupId.Focus();
 
-				Dictionary<string, SpriteGroupData> data = new();
+				Dictionary<string, SpriteAnimationData> data = new();
 				foreach (var pair in o.Groups.Groups) {
-					data.Add(pair.Key, (SpriteGroupData)pair.Value);
+					data.Add(pair.Key, pair.Value.ToData());
 				}
 
 				try {
-					var text = Json.SerializeClass(data, true);
+					var text = JsonSerializer.Serialize(data);
 					File.WriteAllText(o.saveCollectionDialog.FileName, text);
 				} catch (Exception e) {
 					MessageBox.Show(o, string.Format(o.Localization.Strings.SaveCollectionError, e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -156,18 +173,9 @@ namespace TML.SpriteCollectionEditor {
 				}
 			}
 		);
-		public RelayCommand<MainWindow> ConfigCommand { get; } = new(
-			(o) => {
-				Debug.Assert(o != null);
-				var window = new ConfigDialog {
-					Owner = o
-				};
-				window.ShowDialog();
-			}
-		);
 		public RelayCommand<MainWindow> AboutCommand { get; } = new((o) => {
 			Debug.Assert(o != null);
-			MessageBox.Show(o, "Sprite Collection Editor v1.2.0\nby TML233", "About", MessageBoxButton.OK, MessageBoxImage.Information);
+			MessageBox.Show(o, "Sprite Collection Editor v2.0.0\nby TML233", "About", MessageBoxButton.OK, MessageBoxImage.Information);
 		});
 		public RelayCommand<MainWindow> ExitCommand { get; } = new((o) => {
 			Debug.Assert(o != null);
@@ -185,6 +193,7 @@ namespace TML.SpriteCollectionEditor {
 				var succeeded = o.Groups.Add(text, null);
 				Debug.Assert(succeeded);
 				o.InputGroupId = string.Empty;
+				o.SetGroup(text);
 			},
 			(o) => {
 				Debug.Assert(o != null);
@@ -192,20 +201,6 @@ namespace TML.SpriteCollectionEditor {
 				return !string.IsNullOrEmpty(text) && !o.Groups.IsExists(text);
 			}
 		);
-		private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			if (sender is not ListView list) {
-				return;
-			}
-			if (list.SelectedItem == null) {
-				SetGroup(null);
-				return;
-			}
-
-			var id = list.SelectedItem as string;
-			Debug.Assert(id != null);
-
-			SetGroup(id);
-		}
 		public RelayCommand<MainWindow> GroupListRemoveCommand { get; } = new(
 			(o) => {
 				Debug.Assert(o != null);
@@ -217,9 +212,11 @@ namespace TML.SpriteCollectionEditor {
 
 				var removing = new string[count];
 				for (int i = 0; i < count; i += 1) {
-					string? id = list.SelectedItems[i] as string;
-					Debug.Assert(id != null);
-					removing[i] = id;
+					if (list.SelectedItems[i] is not KeyValuePair<string, SpriteAnimation> pair) {
+						Debug.Fail("Type error");
+						return;
+					}
+					removing[i] = pair.Key;
 				}
 
 				foreach (var id in removing) {
@@ -240,7 +237,6 @@ namespace TML.SpriteCollectionEditor {
 
 				var succeeded =o.Groups.Rename(group.OriginalId, group.Id);
 				Debug.Assert(succeeded);
-
 				o.SetGroup(group.Id);
 			},
 			(o) => {
@@ -261,10 +257,6 @@ namespace TML.SpriteCollectionEditor {
 				var resPath = Global.Config.ResourcePath;
 				if (!Directory.Exists(resPath)) {
 					MessageBox.Show(o, o.Localization.Strings.AddTextureConfigError, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-					var dialog = new ConfigDialog() {
-						Owner = o
-					};
-					dialog.ShowDialog();
 					return;
 				}
 
@@ -283,7 +275,7 @@ namespace TML.SpriteCollectionEditor {
 						MessageBox.Show(o, o.Localization.Strings.AddTexturePathError, "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
 						break;
 					}
-					o.CurrentGroup.TexturePaths.Add(new SpriteGroup.TexturePath(result));
+					o.CurrentGroup.TexturePaths.Add(new SpriteAnimation.TexturePath(result));
 				}
 			}
 		);
@@ -316,7 +308,7 @@ namespace TML.SpriteCollectionEditor {
 					if (string.IsNullOrEmpty(tpath)) {
 						continue;
 					}
-					o.CurrentGroup.TexturePaths.Add(new SpriteGroup.TexturePath(tpath));
+					o.CurrentGroup.TexturePaths.Add(new SpriteAnimation.TexturePath(tpath));
 				}
 			}
 		);
@@ -331,9 +323,9 @@ namespace TML.SpriteCollectionEditor {
 					return;
 				}
 
-				var removing = new SpriteGroup.TexturePath[count];
+				var removing = new SpriteAnimation.TexturePath[count];
 				for(int i = 0; i < count; i += 1) {
-					var item = list.SelectedItems[i] as SpriteGroup.TexturePath;
+					var item = list.SelectedItems[i] as SpriteAnimation.TexturePath;
 					Debug.Assert(item != null);
 					removing[i] = item;
 				}
@@ -352,18 +344,18 @@ namespace TML.SpriteCollectionEditor {
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 
-		Dictionary<string, SpriteGroup> groups = new();
-		public IReadOnlyDictionary<string, SpriteGroup> Groups => groups;
-		public IEnumerable<string> Ids => groups.Keys.OrderBy(x => x);
+		Dictionary<string, SpriteAnimation> groups = new();
+		public IReadOnlyDictionary<string, SpriteAnimation> Groups => groups;
+		public IEnumerable<KeyValuePair<string,SpriteAnimation>> OrderedGroups => groups.OrderBy(x => x.Key);
 		void OnGroupsChanged() {
-			OnPropertyChanged(nameof(Ids));
+			OnPropertyChanged(nameof(OrderedGroups));
 		}
 
-		public bool Add(string id, SpriteGroup? group) {
+		public bool Add(string id, SpriteAnimation? group) {
 			if (IsExists(id)) {
 				return false;
 			}
-			group ??= new SpriteGroup();
+			group ??= new SpriteAnimation();
 			group.Id = id;
 			group.OriginalId = id;
 			groups.Add(id, group);
@@ -374,7 +366,7 @@ namespace TML.SpriteCollectionEditor {
 		public bool IsExists(string id) {
 			return groups.ContainsKey(id);
 		}
-		public bool TryGet(string id, [NotNullWhen(true)] out SpriteGroup? result) {
+		public bool TryGet(string id, [NotNullWhen(true)] out SpriteAnimation? result) {
 			return groups.TryGetValue(id, out result);
 		}
 		public bool Remove(string id) {

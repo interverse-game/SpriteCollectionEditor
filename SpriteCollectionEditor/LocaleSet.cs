@@ -5,38 +5,49 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TML.SpriteCollectionEditor {
-	public class LocaleSet {
-		public string MenuFile { get; set; } = string.Empty;
-		public string MenuFileNew { get; set; } = string.Empty;
-		public string MenuFileOpen { get; set; } = string.Empty;
-		public string MenuFileSaveAs { get; set; } = string.Empty;
-		public string MenuFileExit { get; set; } = string.Empty;
-		public string MenuConfigure { get; set; } = string.Empty;
-		public string MenuAbout { get; set; } = string.Empty;
-		public string GroupAdd { get; set; } = string.Empty;
-		public string ContextRemove { get; set; } = string.Empty;
-		public string GroupId { get; set; } = string.Empty;
-		public string GroupTextures { get; set; } = string.Empty;
-		public string GroupSpeed { get; set; } = string.Empty;
-		public string GroupStartIndex { get; set; } = string.Empty;
-		public string GroupFlags { get; set; } = string.Empty;
-		public string GroupStartPlaying { get; set; } = string.Empty;
-		public string GroupLooped { get; set; } = string.Empty;
-		public string GroupFlipX { get; set; } = string.Empty;
-		public string GroupFlipY { get; set; } = string.Empty;
-		public string GroupOriginFactor { get; set; } = string.Empty;
-		public string GroupOriginOffset { get; set; } = string.Empty;
-		public string GroupNextGroup { get; set; } = string.Empty;
-		public string GroupEditingSingle { get; set; } = string.Empty;
-		public string GroupEditingMultiple { get; set; } = string.Empty;
-		public string OpenCollectionError { get; set; } = string.Empty;
-		public string SaveCollectionError { get; set; } = string.Empty;
-		public string AddTexturePathError { get; set; } = string.Empty;
-		public string AddTextureConfigError { get; set; } = string.Empty;
-		public string Confirm { get; set; } = string.Empty;
-		public string Cancel { get; set; } = string.Empty;
-		public string ConfigResourcePath { get; set; } = string.Empty;
-		public string ConfigBrowse { get; set; } = string.Empty;
-		public string ConfigLanguage { get; set; } = string.Empty;
-	}
+	public record class LocaleSet(
+		string MenuFile,
+		string MenuFileNew,
+		string MenuFileOpen,
+		string MenuFileSaveAs,
+		string MenuFileExit,
+		string MenuAbout,
+		string AnimationAdd,
+		string ContextRemove,
+		string AnimationId,
+		string AnimationIdHelp,
+		string AnimationTexturePaths,
+		string AnimationTexturePathsAddHelp,
+		string AnimationTexturePathsEditHelp,
+		string AnimationSpeed,
+		string AnimationSpeedHelp,
+		string AnimationStartIndex,
+		string AnimationStartIndexHelp,
+		string AnimationIndexAfterLoop,
+		string AnimationIndexAfterLoopHelp,
+		string AnimationFlags,
+		string AnimationStartPlaying,
+		string AnimationStartPlayingHelp,
+		string AnimationLooped,
+		string AnimationPrecacheTextures,
+		string AnimationPrecacheTexturesHelp,
+		string AnimationScale,
+		string AnimationOrigin,
+		string AnimationOriginHelp,
+		string AnimationNextAnimation,
+		string AnimationNextAnimationHelp,
+		string OpenCollectionError,
+		string SaveCollectionError,
+		string AddTexturePathError,
+		string AddTextureConfigError,
+		string ConfigAddsResPrefix,
+		string ConfigAddsResPrefixHelp,
+		string ConfigResourcePath,
+		string ConfigResourcePathHelp,
+		string ConfigBrowse,
+		string ConfigLanguage,
+		string Confirm,
+		string Cancel,
+		string EditTextureListHelp
+	);
 }

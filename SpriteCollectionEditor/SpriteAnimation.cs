@@ -2,60 +2,60 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using TML.Engine;
 
 namespace TML.SpriteCollectionEditor {
-	public struct SpriteGroupData {
-		public static explicit operator SpriteGroupData(SpriteGroup group) {
-			var data= new SpriteGroupData() {
-				TexturePaths = new List<string>(),
-				Speed = group.Speed,
-				StartPlaying = group.StartPlaying,
-				StartIndex = group.StartIndex,
-				Looped = group.Looped,
-				FlipX = group.FlipX,
-				FlipY = group.FlipY,
-				OriginFactor = new Vector2(group.OriginFactorX, group.OriginFactorY),
-				OriginOffset = new Vector2(group.OriginOffsetX, group.OriginOffsetY),
-				NextGroup = group.NextGroupEnabled ? group.NextGroup : null,
-			};
-			foreach(var path in group.TexturePaths) {
-				data.TexturePaths.Add(path.Path);
-			}
-			return data;
-		}
+	public readonly record struct SpriteAnimationData(
+		string[] TexturePaths,
+		float Speed,
+		bool StartPlaying,
+		float StartIndex,
+		float IndexAfterLoop,
+		bool Looped,
+		bool PrecacheTextures,
+		Vector2 Scale,
+		Vector2 OriginFactor,
+		Vector2 OriginOffset,
+		string NextAnimation
+	);
 
-		public List<string> TexturePaths { get; set; }
-		public float Speed { get; set; }
-		public bool StartPlaying { get; set; }
-		public float StartIndex { get; set; }
-		public bool Looped { get; set; }
-		public bool FlipX { get; set; }
-		public bool FlipY { get; set; }
-		public Vector2 OriginFactor { get; set; }
-		public Vector2 OriginOffset { get; set; }
-		public string? NextGroup { get; set; }
-	}
-
-	public class SpriteGroup:INotifyPropertyChanged {
-		public static explicit operator SpriteGroup(SpriteGroupData data) {
-			var group = new SpriteGroup() {
+	public class SpriteAnimation:INotifyPropertyChanged {
+		public static SpriteAnimation FromData(SpriteAnimationData data) {
+			var group = new SpriteAnimation() {
 				Speed = data.Speed,
 				StartPlaying = data.StartPlaying,
 				StartIndex = data.StartIndex,
+				IndexAfterLoop = data.IndexAfterLoop,
 				Looped = data.Looped,
-				FlipX = data.FlipX,
-				FlipY = data.FlipY,
+				PrecacheTextures = data.PrecacheTextures,
+				ScaleX = data.Scale.x,
+				ScaleY = data.Scale.y,
 				OriginFactorX = data.OriginFactor.x,
 				OriginFactorY = data.OriginFactor.y,
 				OriginOffsetX = data.OriginOffset.x,
 				OriginOffsetY = data.OriginOffset.y,
-				NextGroupEnabled = data.NextGroup != null,
-				NextGroup = data.NextGroup ?? ""
+				NextAnimation = data.NextAnimation
 			};
 			foreach(var path in data.TexturePaths) {
 				group.TexturePaths.Add(new TexturePath(path));
 			}
 			return group;
+		}
+		public SpriteAnimationData ToData() {
+			return new SpriteAnimationData {
+				TexturePaths = TexturePaths.Select(o => o.Path).ToArray(),
+				Speed = Speed,
+				StartPlaying = StartPlaying,
+				StartIndex = StartIndex,
+				IndexAfterLoop = IndexAfterLoop,
+				Looped = Looped,
+				PrecacheTextures = PrecacheTextures,
+				Scale = new(ScaleX, ScaleY),
+				OriginFactor = new(OriginFactorX, OriginFactorY),
+				OriginOffset = new(OriginFactorX, OriginFactorY),
+				NextAnimation = NextAnimation
+			};
 		}
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public void OnPropertyChanged(string propertyName) =>
@@ -105,6 +105,14 @@ namespace TML.SpriteCollectionEditor {
 				OnPropertyChanged(nameof(StartIndex));
 			}
 		}
+		float indexAfterLoop = 0;
+		public float IndexAfterLoop {
+			get => indexAfterLoop;
+			set {
+				indexAfterLoop = value;
+				OnPropertyChanged(nameof(IndexAfterLoop));
+			}
+		}
 		bool looped = true;
 		public bool Looped {
 			get => looped;
@@ -113,20 +121,28 @@ namespace TML.SpriteCollectionEditor {
 				OnPropertyChanged(nameof(Looped));
 			}
 		}
-		bool flipX = false;
-		public bool FlipX {
-			get => flipX;
+		bool precacheTextures = true;
+		public bool PrecacheTextures {
+			get => precacheTextures;
 			set {
-				flipX = value;
-				OnPropertyChanged(nameof(FlipX));
+				precacheTextures = value;
+				OnPropertyChanged(nameof(PrecacheTextures));
 			}
 		}
-		bool flipY = false;
-		public bool FlipY {
-			get => flipY;
+		float scaleX = 1f;
+		public float ScaleX {
+			get => scaleX;
 			set {
-				flipY = value;
-				OnPropertyChanged(nameof(FlipY));
+				scaleX = value;
+				OnPropertyChanged(nameof(ScaleX));
+			}
+		}
+		float scaleY = 1f;
+		public float ScaleY {
+			get => scaleY;
+			set {
+				scaleY = value;
+				OnPropertyChanged(nameof(ScaleY));
 			}
 		}
 		float originFactorX = 0.5f;
@@ -161,20 +177,12 @@ namespace TML.SpriteCollectionEditor {
 				OnPropertyChanged(nameof(OriginOffsetY));
 			}
 		}
-		bool nextGroupEnabled = false;
-		public bool NextGroupEnabled {
-			get => nextGroupEnabled;
+		string nextAnimation = string.Empty;
+		public string NextAnimation {
+			get => nextAnimation;
 			set {
-				nextGroupEnabled = value;
-				OnPropertyChanged(nameof(NextGroupEnabled));
-			}
-		}
-		string nextGroup = string.Empty;
-		public string NextGroup {
-			get => nextGroup;
-			set {
-				nextGroup = value;
-				OnPropertyChanged(nameof(NextGroup));
+				nextAnimation = value;
+				OnPropertyChanged(nameof(NextAnimation));
 			}
 		}
 	}
